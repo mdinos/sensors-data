@@ -1,3 +1,0 @@
-# stuff
-
-Where I keep things...

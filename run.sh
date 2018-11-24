@@ -1,12 +1,15 @@
 #!/bin/bash
 
 PID=$(echo $$)
-echo 'Hello, welcome to the sensor data package. Here are your commands:\n start - starts the service\n stop - stops the service'
+echo "Hello, welcome to the sensor data package. Your output data will be in ./data. Here are your commands:"
+echo "	 start 	- starts the service"
+echo "   stop 	- stops the service"
+echo "It's not recommended to exit unsafely - background processes will continue to run"
 
 while true 
 do
     if [ "$OUTPUT_FILE" == "" ]; then
-        OUTPUT_FILE='failed.log'
+        OUTPUT_FILE='logs/failed.log'
     fi
     read command
     if [ "$command" == "start" ]; then 
@@ -14,10 +17,9 @@ do
         echo $OUTPUT_FILE
         echo '{' > data/$OUTPUT_FILE
         ./sensors.sh data/$OUTPUT_FILE &
-        tail -f $OUPUT_FILE &
     elif [ "$command" == "stop" ]; then
-        echo 'stopping..'
-        if [ "$OUTPUT_FILE" == "failed.log" ]; then
+        echo 'stopping safely..'
+        if [ "$OUTPUT_FILE" == "logs/failed.log" ]; then
             truncate -s-2 $OUTPUT_FILE
             echo "" >> $OUTPUT_FILE
             echo "}" >> $OUTPUT_FILE
@@ -33,3 +35,5 @@ do
         echo 'incorrect command, try "start" or "stop"'
     fi
 done
+
+echo "Bye!"

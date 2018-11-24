@@ -1,2 +1,3 @@
-failed.log
-sensor_output_*
+**/logs/failed.log
+*.json
+!sensors_output_1.json

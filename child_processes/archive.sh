@@ -1,9 +1,10 @@
 #!/bin/bash
 
-DIRECTORY=sensors-data-archive
+DIRECTORY=$(grep 'archive-directory:' config/settings.conf | awk '{print $2}')
+echo $DIRECTORY
 
 if [ ! -d "$HOME/$DIRECTORY" ]; then
-    echo "Making directory $DIRECTORY"
+    echo "Making directory $HOME/$DIRECTORY"
     mkdir $HOME/$DIRECTORY
 fi
 

@@ -3,7 +3,8 @@
 ID_NO=0
 OUTPUT_FILE="$1"
 OUTPUT_PATH="data/$OUTPUT_FILE"
-echo $OUTPUT_PATH
+FREQUENCY=$(grep 'collection-frequency:' config/settings.conf | awk '{print $2}')
+echo "$FREQUENCY seconds between data points. this can be adjusting in config/settings.conf"
 
 while true
 do
@@ -18,5 +19,5 @@ do
     echo $JSON >> $OUTPUT_PATH
     echo "Written to file with ID_NO: '$ID_NO'"
     ID_NO=$(expr $ID_NO + 1)
-    sleep 10
+    sleep "$FREQUENCY"
 done

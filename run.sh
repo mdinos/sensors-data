@@ -3,15 +3,17 @@
 # setting variables
 PID=$(echo $$)
 STOP_VALUE="0"
+DIRECTORY=$(grep 'archive-directory:' ../config/settings.conf | awk '{print $2}')
 
 # helper function
 help() {
-    echo "Hello, welcome to the sensor data package. Your output data will be in ./data. Here are your commands:"
-    echo "      start 	- starts the service"
-    echo "      stop 	- stops the service"
-    echo "      archive - archives the generated the data to \$HOME/sensor-data-archive"
+    echo "hello, welcome to the sensor data package - your output data will be in ./data - here are your commands:"
+    echo "      start 	- starts monitoring of cpu temps"
+    echo "      stop 	- stops monitoring cpu temps"
+    echo "      archive - archives the generated the data to \$HOME/$DIRECTORY"
     echo "      exit    - exit the program"
-    echo "It's not recommended to exit unsafely - background processes will continue to run"
+    echo "it's not recommended to exit unsafely - background processes will continue to run"
+    echo "settings can be changed in config/settings.conf"
 }
 
 help

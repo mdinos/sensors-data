@@ -1,22 +1,44 @@
 #!/bin/bash
 
+# setting variables
 PID=$(echo $$)
-echo "Hello, welcome to the sensor data package. Your output data will be in ./data. Here are your commands:"
-echo "	 start 	- starts the service"
-echo "   stop 	- stops the service"
-echo "It's not recommended to exit unsafely - background processes will continue to run"
+STOP_VALUE="0"
 
+# helper function
+help() {
+    echo "Hello, welcome to the sensor data package. Your output data will be in ./data. Here are your commands:"
+    echo "      start 	- starts the service"
+    echo "      stop 	- stops the service"
+    echo "      archive - archives the generated the data to \$HOME/sensor-data-archive"
+    echo "      exit    - exit the program"
+    echo "It's not recommended to exit unsafely - background processes will continue to run"
+}
+
+help
+
+# begin program
 while true 
 do
     if [ "$OUTPUT_FILE" == "" ]; then
-        OUTPUT_FILE='logs/failed.log'
+        OUTPUT_FILE="logs/failed.log"
     fi
+
     read command
+
+    # start command
     if [ "$command" == "start" ]; then 
-        OUTPUT_FILE="sensors_output_$(expr $(ls -t data | head -1 | tail -c 7 | head -c 1) + 1).json"
-        echo $OUTPUT_FILE
-        echo '{' > data/$OUTPUT_FILE
-        ./sensors.sh data/$OUTPUT_FILE &
+        if [ "$STOP_VALUE" == "0" ]; then
+            echo "starting.."
+            OUTPUT_FILE="sensors_output_$(expr $(ls -t data | head -1 | tail -c 7 | head -c 1) + 1).json"
+            echo "output file: $OUTPUT_FILE"
+            echo '{' > data/$OUTPUT_FILE
+            ./child_processes/sensors.sh $OUTPUT_FILE &
+            STOP_VALUE="1"
+        else
+            echo "Cannot start, already running!"
+        fi
+
+    # stop command
     elif [ "$command" == "stop" ]; then
         echo 'stopping safely..'
         if [ "$OUTPUT_FILE" == "logs/failed.log" ]; then
@@ -30,10 +52,31 @@ do
         fi
         sleep 3
         pkill -TERM -P $PID
-        break
-    else
-        echo 'incorrect command, try "start" or "stop"'
-    fi
-done
+        STOP_VALUE="0"
+        echo "stopped!"
 
-echo "Bye!"
+    # archive data command
+    elif [ "$command" == "archive" ]; then
+        echo "Copying data from /data to ~/sensor-data-archive.."
+        ./child_processes/archive.sh
+        echo "Data (probably) copied to ~/sensor-data-archive!"
+    
+    # call help function
+    elif [ "$command" == "help" ]; then
+        help
+
+    # exit command, checks STOP_VALUE before exiting
+    elif [ "$command" == "exit" ]; then
+        if [ "$STOP_VALUE" == "0" ]; then
+            echo "exiting.."
+            break
+        else
+            echo "cannot exit: processes still running - use command 'stop' to end data collection. "
+        fi
+
+    # incorrect command
+    else
+        echo 'incorrect command, try "help"'
+    fi
+
+done

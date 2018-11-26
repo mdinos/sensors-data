@@ -19,7 +19,7 @@ help() {
 help
 
 # begin program
-while true 
+while true 2
 do
     if [ "$OUTPUT_FILE" == "" ]; then
         OUTPUT_FILE="logs/failed.log"
@@ -43,25 +43,23 @@ do
     # stop command
     elif [ "$command" == "stop" ]; then
         echo 'stopping safely..'
+        sleep 3
         if [ "$OUTPUT_FILE" == "logs/failed.log" ]; then
-            truncate -s-2 $OUTPUT_FILE
-            echo "" >> $OUTPUT_FILE
-            echo "}" >> $OUTPUT_FILE
+            echo "data written to logs/failed.log, check your settings."
         else
             truncate -s-2 data/$OUTPUT_FILE
             echo "" >> data/$OUTPUT_FILE
             echo "}" >> data/$OUTPUT_FILE
         fi
-        sleep 3
         pkill -TERM -P $PID
         STOP_VALUE="0"
         echo "stopped!"
 
     # archive data command
     elif [ "$command" == "archive" ]; then
-        echo "Copying data from /data to ~/sensor-data-archive.."
-        ./child_processes/archive.sh
-        echo "Data (probably) copied to ~/sensor-data-archive!"
+        echo "Copying data from /data to $HOME/$DIRECTORY"
+        ./child_processes/archive.sh $DIRECTORY
+        echo "Data (probably) copied to $HOME/$DIRECTORY!"
     
     # call help function
     elif [ "$command" == "help" ]; then

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DIRECTORY=$(grep 'archive-directory:' config/settings.conf | awk '{print $2}')
+DIRECTORY=$1
 echo $DIRECTORY
 
 if [ ! -d "$HOME/$DIRECTORY" ]; then

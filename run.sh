@@ -3,14 +3,15 @@
 # setting variables
 PID=$(echo $$)
 STOP_VALUE="0"
-DIRECTORY=$(grep 'archive-directory:' ../config/settings.conf | awk '{print $2}')
+ARCHIVE_DIR=$(grep 'archive-directory:' config/settings.conf | awk '{print $2}')
 
 # helper function
 help() {
     echo "hello, welcome to the sensor data package - your output data will be in ./data - here are your commands:"
     echo "      start 	- starts monitoring of cpu temps"
     echo "      stop 	- stops monitoring cpu temps"
-    echo "      archive - archives the generated the data to \$HOME/$DIRECTORY"
+    echo "      archive - archives the generated the data to \$HOME/$ARCHIVE_DIR"
+    echo "      purge   - removes all generated data from /data folder - use archive first!"
     echo "      exit    - exit the program"
     echo "it's not recommended to exit unsafely - background processes will continue to run"
     echo "settings can be changed in config/settings.conf"
@@ -19,7 +20,7 @@ help() {
 help
 
 # begin program
-while true 2
+while true
 do
     if [ "$OUTPUT_FILE" == "" ]; then
         OUTPUT_FILE="logs/failed.log"
@@ -57,13 +58,35 @@ do
 
     # archive data command
     elif [ "$command" == "archive" ]; then
-        echo "Copying data from /data to $HOME/$DIRECTORY"
-        ./child_processes/archive.sh $DIRECTORY
-        echo "Data (probably) copied to $HOME/$DIRECTORY!"
+        echo "checking for changes to archive directory..."
+
+        # check that the settings have not been updated since run.sh was called
+        if [ $(grep 'archive-directory:' config/settings.conf | awk '{print $2}') != $ARCHIVE_DIR ]; then
+            ARCHIVE_DIR=$(grep 'archive-directory:' ../config/settings.conf | awk '{print $2}')
+            echo "archive directory updated to $HOME/$ARCHIVE_DIR"
+        else
+            echo "archive directory not updated - stil $HOME/$ARCHIVE_DIR"
+        fi
+
+        echo "Copying data from /data to $HOME/$ARCHIVE_DIR"
+        ./child_processes/archive.sh $ARCHIVE_DIR
+        echo "Data (probably) copied to $HOME/$ARCHIVE_DIR! (you should probably check)"
     
     # call help function
     elif [ "$command" == "help" ]; then
         help
+
+    # purge /data function
+    elif [ "$command" == "purge" ]; then
+        echo "are you sure? this will delete everything in the data folder! only 'y' will be accepted response"
+        read verification
+        if [ "$verification" == "y" ]; then
+            echo "purging data from /data"
+            rm -r data/sensor*
+            echo "done!"
+        else
+            echo "operation cancelled."
+        fi
 
     # exit command, checks STOP_VALUE before exiting
     elif [ "$command" == "exit" ]; then

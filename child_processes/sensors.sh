@@ -17,7 +17,7 @@ do
     JSON=""'"'$ID_NO'"'": {"'"timestamp"'" : $(date +%s), "'"cputemps"'" : {"'"core_0"'": $CORE_0,"'"core_1"'": $CORE_1,"'"core_2"'": $CORE_2,"'"core_3"'": $CORE_3}},"
 
     echo $JSON >> $OUTPUT_PATH
-    echo "Written to file with ID_NO: '$ID_NO'"
+    echo "written to file with ID_NO: '$ID_NO'"
     ID_NO=$(expr $ID_NO + 1)
     sleep "$FREQUENCY"
 done

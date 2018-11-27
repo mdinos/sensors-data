@@ -62,10 +62,10 @@ do
 
         # check that the settings have not been updated since run.sh was called
         if [ $(grep 'archive-directory:' config/settings.conf | awk '{print $2}') != $ARCHIVE_DIR ]; then
-            ARCHIVE_DIR=$(grep 'archive-directory:' ../config/settings.conf | awk '{print $2}')
+            ARCHIVE_DIR=$(grep 'archive-directory:' config/settings.conf | awk '{print $2}')
             echo "archive directory updated to $HOME/$ARCHIVE_DIR"
         else
-            echo "archive directory not updated - stil $HOME/$ARCHIVE_DIR"
+            echo "archive directory not updated - still $HOME/$ARCHIVE_DIR"
         fi
 
         echo "Copying data from /data to $HOME/$ARCHIVE_DIR"

@@ -3,9 +3,11 @@
 ARCHIVE_DIR=$1
 echo $ARCHIVE_DIR
 
-if [ ! -d "$HOME/$ARCHIVE_DIR" ]; then
+if [[ ! -d ${HOME}/${ARCHIVE_DIR} ]]; then
     echo "making directory $HOME/$ARCHIVE_DIR"
     mkdir -p $HOME/$ARCHIVE_DIR
+else 
+    echo "directory exists, proceeding.."
 fi
 
 FILES=$(ls | grep 'sensors_data_*')

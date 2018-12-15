@@ -30,10 +30,10 @@ checkDataIntegrity() {
     echo $FINALCHARS
     echo 
     if [ "$LASTCHARS" == "$FINALCHARS" ]; then
-        echo "returning 1"
+        echo "data is ok in $1"
         return 1
     else
-        echo "returning 0"
+        echo "data is bad in $1 - manual fix recomended (JSON error most likely)"
         return 0
     fi
 }
@@ -79,12 +79,7 @@ do
         sleep 2
         echo "stopped!"
         echo "checking data integrity.."
-        DATAINTEGRITY=$(checkDataIntegrity $OUTPUT_FILE)
-        if [[ $DATAINTEGRITY == 1 ]]; then
-            echo "data saved correctly"
-        else
-            echo "data saved incorrectly - manual fix recomended (JSON error most likely)"
-        fi
+        checkDataIntegrity $OUTPUT_FILE
 
     # archive data command
     elif [ "$command" == "archive" ]; then
@@ -124,7 +119,7 @@ do
             echo "exiting.."
             break
         else
-            echo "cannot exit: processes still running - use command 'stop' to end data collection. "
+            echo "cannot exit: processes still running - use command 'stop' to end data collection."
         fi
 
     # show last file
@@ -142,8 +137,13 @@ do
     elif [ "$command" == "" ]; then
         noCommand=""
 
+    # run checkDataIntegrity function
     elif [ "$command" == "cdi" ]; then
-
+        if [ "$OUTPUT_FILE" == 'logs/failed.log' ]; then
+            echo "you haven't written any data in this session yet - try collecting some data."
+        else
+            checkDataIntegrity $OUTPUT_FILE
+        fi
 
     # incorrect command
     else

@@ -1,7 +1,6 @@
 #!/bin/bash
 
 ARCHIVE_DIR=$1
-echo $ARCHIVE_DIR
 
 if [[ ! -d ${HOME}/${ARCHIVE_DIR} ]]; then
     echo "making directory $HOME/$ARCHIVE_DIR"

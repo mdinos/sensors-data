@@ -27,8 +27,6 @@ help() {
 # currently broken
 checkDataIntegrity() {
     FINALCHARS=$(tail -c5 data/$1)
-    echo $FINALCHARS
-    echo 
     if [ "$LASTCHARS" == "$FINALCHARS" ]; then
         echo "data is ok in $1"
         return 1

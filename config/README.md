@@ -1,11 +1,12 @@
 # settings descriptions
 
 ### archive-directory
-The directory in which you want to save your files when performing the `archive` command, set by default to ~/sensors_data_archive/001/
+The directory in which you want to save your files when performing the `archive` command, set by default to `~/sensors_data_archive/001/`
 Makes the directories necessary if it doesn't exist already.
 
 ### collection-frequency
 The time in seconds between data entries.
+
 Warning: If you set this very low, for instance when I put it to 0.001 seconds, there is a relatively high likelihood that your json will be corrupted and you will have to fix it. This will not be difficult.
 
 ### confirm-file-write

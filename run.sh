@@ -63,21 +63,27 @@ do
 
     # stop command
     elif [ "$command" == "stop" ]; then
-        echo 'stopping safely..'
-        sleep 2
-        if [ "$OUTPUT_FILE" == "logs/failed.log" ]; then
-            echo "data written to logs/failed.log, check your settings."
+        if [ "$STOP_VALUE" != "1" ]; then
+            echo "STOP_VALUE is not 1, why would you stop if you haven't started? :)"
         else
-            truncate -s-2 data/$OUTPUT_FILE
-            echo "" >> data/$OUTPUT_FILE
-            echo "}" >> data/$OUTPUT_FILE
+            echo 'stopping safely..'
+            sleep 2
+
+            if [ "$OUTPUT_FILE" == "logs/failed.log" ]; then
+                echo "data written to logs/failed.log, check your settings."
+            else
+                truncate -s-2 data/$OUTPUT_FILE
+                echo "" >> data/$OUTPUT_FILE
+                echo "}" >> data/$OUTPUT_FILE
+            fi
+
+            pkill -TERM -P $PID
+            STOP_VALUE="0"
+            echo "stopped!"
+
+            echo "checking data integrity.."
+            checkDataIntegrity $OUTPUT_FILE
         fi
-        pkill -TERM -P $PID
-        STOP_VALUE="0"
-        sleep 2
-        echo "stopped!"
-        echo "checking data integrity.."
-        checkDataIntegrity $OUTPUT_FILE
 
     # archive data command
     elif [ "$command" == "archive" ]; then

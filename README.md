@@ -16,7 +16,7 @@ If you want to see data going into the file live, then open up another terminal 
     - Will eventually use some proper data store -> pssssshhh
 
 ## the future
-- hook up grafana for viewing metrics
-- use maybe mongo or clickhouse to store the data points. Clickhouse????
+- hook up some graphing thing
+- use maybe mongo to store data
 - extrapolate more subprocesses - keep run.sh as barebones as possible
     - don't bother doing that for the functions which just run a single command like 'sf'

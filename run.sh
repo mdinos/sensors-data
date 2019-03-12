@@ -107,9 +107,9 @@ do
 
     # purge /data function
     elif [ "$command" == "purge" ]; then
-        echo "are you sure? this will delete everything in the data folder! only 'y' will be accepted response"
+        echo "are you sure? this will delete everything in the data folder! only 'yes' will be accepted response"
         read verification
-        if [ "$verification" == "y" ]; then
+        if [ "$verification" == "yes" ]; then
             echo "purging data from /data"
             rm -r data/sensor*
             echo "done!"

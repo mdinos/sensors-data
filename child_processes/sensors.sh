@@ -7,6 +7,11 @@ FREQUENCY=$(grep 'collection-frequency:' config/settings.conf | awk '{print $2}'
 CONF_FILE_WRITE=$(grep 'confirm-file-write:' config/settings.conf | awk '{print $2}')
 
 echo "$FREQUENCY seconds between data points. this can be adjusting in config/settings.conf"
+if [[ "$CONF_FILE_WRITE" == 'true' ]]; then
+    echo "Outputting data as is is written."
+else
+    echo "Not outputting data as it is written."
+fi
 
 while true
 do

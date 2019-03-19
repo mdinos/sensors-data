@@ -51,8 +51,8 @@ def check_state(field):
 
 def reset_state():
     with open('config/statefile.json', 'w+') as json_state:
-        python_dict_base_state = {"running": False, "stop": False}
-        json.dump(python_dict_base_state, json_state)
+        base_state = {"running": False, "stop": False}
+        json.dump(base_state, json_state)
 
 def record_data(output_file_name, write_id, collection_freq):
     print("Recording CPU Temps: ")

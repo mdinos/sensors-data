@@ -1,2 +1,3 @@
 **/logs/failed.log
-sensors_output_*.json
+data/sensors_output_*.json
+data/py-data/*.json

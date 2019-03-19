@@ -4,14 +4,19 @@ from datetime import datetime
 # Create argparse instance
 parser = argparse.ArgumentParser(description='Collect CPU temp data')
 
+# Create argparse groups
+parser_start_group = parser.add_mutually_exclusive_group()
+
 # Options declaration
-parser.add_argument('-s', '--start', help="start cpu temp monitoring", action="store_true")
-parser.add_argument('-e', '--end', help="end monitoring cpu temperatures", action="store_true")
+parser_start_group.add_argument('-s', '--start', help="start cpu temp monitoring", action="store_true")
+parser_start_group.add_argument('-e', '--end', help="end monitoring cpu temperatures", action="store_true")
+parser_start_group.add_argument('-r', '--reset', help="reset state file; WARNING can destroy currently running \
+                                                        process if used while the program is running - use ONLY \
+                                                        to fix when errors have occurred.", action="store_true")
 parser.add_argument('-S', '--settings', help="list settings defined in config/settings.json", action="store_true")
 parser.add_argument('-V', '--version', help="print the version of sendat", action="store_true")
 parser.add_argument('-v', '--verbose', help="print more info while running", action="store_true")
 parser.add_argument('-t', '--testing', help="test functions", action="store_true")
-parser.parse_args() 
 
 args = parser.parse_args()
 
@@ -43,6 +48,11 @@ def check_state(field):
         state = json.load(json_state)
         field_value = state[field]
         return field_value
+
+def reset_state():
+    with open('config/statefile.json', 'w+') as json_state:
+        python_dict_base_state = {"running": False, "stop": False}
+        json.dump(python_dict_base_state, json_state)
 
 def record_data(output_file_name, write_id, collection_freq):
     print("Recording CPU Temps: ")
@@ -117,6 +127,21 @@ if args.end:
         change_state("stop", True)
     else:
         print('Not running - aborted end')
+
+# -r --reset
+if args.reset:
+    verbose('Setting "running" state to false.')
+    verbose('Setting "stop" state to False')
+    try:
+        change_state('running', False)
+        change_state('stop', False)
+    except Exception as e:
+        verbose(str(e))
+        hard_reset = str(input("Encountered issues with soft reset. Perform hard reset? [y/n]: "))
+        if hard_reset == 'y':
+            reset_state()
+        else:
+            print('Not performing hard reset. Reset aborted.')
 
 # -S --settings
 if args.settings:

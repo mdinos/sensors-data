@@ -1,5 +1,1 @@
-{
-    "archive-directory": "sensors-data-archive/005",
-    "collection-frequency": 5,
-    "confirm-file-write": false
-}
+{"archive-directory": "data/py-data/archive", "collection-frequency": 5}

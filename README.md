@@ -26,3 +26,17 @@ Stop (in a different terminal):
 # Python migration
 
 I'm moving to a python cli style utility - it will be better - progress is being made.
+
+
+## Compatability (python)
+
+This has been tested on Linux Mint 19.
+
+Currently it doesn't know how many cores you have, dynamically working this out should be a priority.
+
+Requires these:
+
+```
+grep
+sensors
+```

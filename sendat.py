@@ -1,8 +1,13 @@
 import argparse, json, os, time, glob
 from datetime import datetime
 
+# define global vars
+settings_loc = 'config/settings.json'
+state_loc = 'config/statefile.json'
+write_id = 0
+
 # Create argparse instance
-parser = argparse.ArgumentParser(description='Collect CPU temp data')
+parser = argparse.ArgumentParser(description='Collects CPU temperature data (by core)')
 
 # Create argparse groups
 parser_start_group = parser.add_mutually_exclusive_group()
@@ -14,16 +19,15 @@ parser_start_group.add_argument('-r', '--reset', help="reset state file; WARNING
                                                         process if used while the program is running - use ONLY \
                                                         to fix when errors have occurred.", action="store_true")
 parser_start_group.add_argument('-a', '--archive', help="archive data from data/py-data/ to the directory specified\
-                                                        in config/settings.json", action="store_true")
+                                                        in " + settings_loc, action="store_true")
 parser.add_argument('-f', '--frequency', type=int, help="set how frequently data should be collected in seconds\
-                                                        in config/settings.json")
+                                                        in " + settings_loc)
 parser.add_argument('-A', '--archive-dir', type=str, help="set path to directory in which to archive data in \
-                                                        in config/settings.json \
+                                                        in " + settings_loc + " \
                                                         example: [ -a path/to/dir/ ]")
-parser.add_argument('-S', '--settings', help="list settings defined in config/settings.json", action="store_true")
+parser.add_argument('-S', '--settings', help="list settings defined in " + settings_loc, action="store_true")
 parser.add_argument('-V', '--version', help="print the version of sendat", action="store_true")
 parser.add_argument('-v', '--verbose', help="print more info while running", action="store_true")
-parser.add_argument('-T', '--testing', help="test functions", action="store_true")
 
 args = parser.parse_args()
 
@@ -46,16 +50,30 @@ def check_state(filename, field):
         field_value = file_to_check[field]
         return field_value
 
-def reset_statefile():
-    with open('config/statefile.json', 'w+') as json_state:
+def reset_statefile(state_loc):
+    with open(state_loc, 'w+') as json_state:
         base_state = {"running": False, "stop": False}
         json.dump(base_state, json_state)
 
-def record_data(output_file_name, write_id, collection_freq):
+def reset(state_loc):
+    verbose('Setting "running" state to false.')
+    verbose('Setting "stop" state to False')
+    try:
+        change_state(state_loc, 'running', False)
+        change_state(state_loc, 'stop', False)
+    except Exception as e:
+        verbose(str(e))
+        hard_reset = str(input("Encountered issues with soft reset. Perform hard reset? [y/n]: "))
+        if hard_reset == 'y':
+            reset_statefile(state_loc)
+        else:
+            print('Not performing hard reset. Reset aborted.')
+
+def record_data(output_file_name, write_id, collection_freq, state_loc):
     print("Recording CPU Temps: ")
     verbose('collection-frequency: {}'.format(collection_freq))
-    verbose('setting running state in config/statefile.json')
-    change_state('config/statefile.json', 'running', True)
+    verbose('setting running state in ' + state_loc)
+    change_state(state_loc, 'running', True)
     while True:
         i = 1
         temps = []
@@ -74,11 +92,11 @@ def record_data(output_file_name, write_id, collection_freq):
 
         write_id += 1
 
-        if check_state('config/statefile.json', 'stop'):
+        if check_state(state_loc, 'stop'):
             verbose("stopping record_data function")
             fixup(output_file_name)
-            change_state('config/statefile.json', 'stop', False)
-            change_state('config/statefile.json', 'running', False)
+            change_state(state_loc, 'stop', False)
+            change_state(state_loc, 'running', False)
             break
 
         time.sleep(collection_freq)
@@ -98,10 +116,14 @@ def fixup(output_file_name):
     with open('data/py-data/' + output_file_name, "a+") as data_json:
         verbose('Adding JSON closing curly bracket')
         data_json.write('\n}')
-
-# get some settings and define global vars
-collection_freq = check_state('config/settings.json', 'collection-frequency')
-write_id = 0
+        
+def archive(archive_dir):
+    os.makedirs(archive_dir, exist_ok=True)
+    data_dir_contents = glob.glob("data/py-data/*.json")
+    for _file in data_dir_contents:
+        path_list = _file.split('/')
+        filename = path_list[-1]
+        os.rename(_file, archive_dir + '/' + filename)
 
 # CLI Logic
 
@@ -111,60 +133,56 @@ if args.version:
     print("sendat version: {}".format(versionNumber))
 
 # -s --start
-if (args.start and not check_state('config/statefile.json', 'running')):
+if (args.start and not check_state(state_loc, 'running')):
     verbose('starting data collection..')
     output_file_name = (str(datetime.now()).replace(':','-').replace('.', '-').replace(' ', '-') + '.json')
+    collection_freq = check_state(settings_loc, 'collection-frequency')
     verbose("output file name: " + output_file_name)
-    record_data(output_file_name, write_id, collection_freq)
-elif (args.start and check_state('config/statefile.json', 'running')):
+    record_data(output_file_name, write_id, collection_freq, state_loc)
+elif (args.start and check_state(state_loc, 'running')):
     print('aborting, already running.')
 
 # -e --end
 if args.end:
     print("stopping...")
-    verbose("setting stop value in config/statefile.json")
-    if check_state('config/statefile.json', 'running'):
-        change_state('config/statefile.json', "stop", True)
+    verbose("setting stop value in " + state_loc)
+    if check_state(state_loc, 'running'):
+        change_state(state_loc, "stop", True)
     else:
-        print('Not running - aborted end')
+        print('Not running; aborted.')
 
 # -r --reset
 if args.reset:
-    verbose('Setting "running" state to false.')
-    verbose('Setting "stop" state to False')
-    try:
-        change_state('config/statefile.json', 'running', False)
-        change_state('config/statefile.json', 'stop', False)
-    except Exception as e:
-        verbose(str(e))
-        hard_reset = str(input("Encountered issues with soft reset. Perform hard reset? [y/n]: "))
-        if hard_reset == 'y':
-            reset_statefile()
-        else:
-            print('Not performing hard reset. Reset aborted.')
+    reset(state_loc)
 
 # -a --archive
 if args.archive:
-    archive_dir = check_state('config/settings.json', 'archive-directory')
+    archive_dir = check_state(settings_loc, 'archive-directory')
     verbose('Archiving data to {}.'.format(archive_dir))
-    os.makedirs(archive_dir, exist_ok=True)
-    data_dir_contents = glob.glob("data/py-data/*.json")
-    for _file in data_dir_contents:
-        filename = _file.split('/')[len(_file.split('/')) - 1]
-        os.rename(_file, archive_dir + '/' + filename)
+    try:
+        archive(archive_dir)
+        verbose('Success!')
+    except Exception as e:
+        print("Oops - something went wrong while archiving:")
+        print(str(e))
 
 # -f --frequency
 if args.frequency != None:
-    verbose('Updating collection_frequency value in config/settings.json')
-    change_state('config/settings.json', 'collection-frequency', args.frequency)
+    verbose('Updating collection_frequency value in ' + settings_loc)
+    if args.frequency > 0:
+        change_state(settings_loc, 'collection-frequency', args.frequency)
+    else:
+        print("Value must be positive and non-zero; aborting.")
 
 # -A --archive-dir
 if args.archive_dir != None:
-    verbose('Updating archive directory location in config/settings.json')
-    change_state('config/settings.json', 'archive-directory', args.archive_dir)
+    verbose('Updating archive directory location in ' + settings_loc)
+    change_state(settings_loc, 'archive-directory', args.archive_dir)
 
 # -S --settings
 if args.settings:
+    archive_dir = check_state(settings_loc, 'archive-directory')
+    collection_freq = check_state(settings_loc, 'collection-frequency')
     print('program settings:')
     print('archive-directory: {}'.format(archive_dir))
     print('collection-frequency: {}'.format(str(collection_freq)))

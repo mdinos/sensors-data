@@ -1,2 +1,3 @@
 **/logs/failed.log
 data/sensors_output_*.json
+.vscode

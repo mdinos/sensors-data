@@ -12,3 +12,7 @@ Warning: If you set this very low, for instance when I put it to 0.001 seconds, 
 ### confirm-file-write
 Set this to `true` if you want to get an echo every time a line is put into a file.
 Will have more options for this in future - ie. you could print every 5 or 10 or whatever you like.
+
+# Python Version
+
+The python version of this program uses the `settings.json` and `statefile.json`. These do not need to be touched manually - they can be updated and changed via the CLI interface as described in the `--help`.

@@ -18,7 +18,7 @@ parser_start_group.add_argument('-e', '--end', help="end monitoring cpu temperat
 parser_start_group.add_argument('-r', '--reset', help="reset state file; WARNING can destroy currently running \
                                                         process if used while the program is running - use ONLY \
                                                         to fix when errors have occurred.", action="store_true")
-parser_start_group.add_argument('-a', '--archive', help="archive data from data/py-data/ to the directory specified\
+parser_start_group.add_argument('-a', '--archive', help="archive data from py-data/ to the directory specified\
                                                         in " + settings_loc, action="store_true")
 parser.add_argument('-f', '--frequency', type=int, help="set how frequently data should be collected in seconds\
                                                         in " + settings_loc)
@@ -50,14 +50,7 @@ def check_state(filename, field):
         field_value = file_to_check[field]
         return field_value
 
-def reset_statefile(state_loc):
-    with open(state_loc, 'w+') as json_state:
-        base_state = {"running": False, "stop": False}
-        json.dump(base_state, json_state)
-
 def reset(state_loc):
-    verbose('Setting "running" state to false.')
-    verbose('Setting "stop" state to False')
     try:
         change_state(state_loc, 'running', False)
         change_state(state_loc, 'stop', False)
@@ -65,7 +58,9 @@ def reset(state_loc):
         verbose(str(e))
         hard_reset = str(input("Encountered issues with soft reset. Perform hard reset? [y/n]: "))
         if hard_reset == 'y':
-            reset_statefile(state_loc)
+            with open(state_loc, 'w+') as json_state:
+                base_state = {"running": False, "stop": False}
+                json.dump(base_state, json_state)
         else:
             print('Not performing hard reset. Reset aborted.')
 
@@ -102,24 +97,24 @@ def record_data(output_file_name, write_id, collection_freq, state_loc):
         time.sleep(collection_freq)
 
 def store(new_entry, output_file_name, write_id):
-    with open('data/py-data/' + output_file_name, "a+") as data_json:
+    with open('py-data/' + output_file_name, "a+") as data_json:
         if write_id == 0:
             data_json.write("{\n" + new_entry)
         else:
             data_json.write('\n' + new_entry)
 
 def fixup(output_file_name):
-    with open('data/py-data/' + output_file_name, "rb+") as data_json:
+    with open('py-data/' + output_file_name, "rb+") as data_json:
         verbose('Removing trailing comma')
         data_json.seek(-1, os.SEEK_END)
         data_json.truncate()
-    with open('data/py-data/' + output_file_name, "a+") as data_json:
+    with open('py-data/' + output_file_name, "a+") as data_json:
         verbose('Adding JSON closing curly bracket')
         data_json.write('\n}')
         
 def archive(archive_dir):
     os.makedirs(archive_dir, exist_ok=True)
-    data_dir_contents = glob.glob("data/py-data/*.json")
+    data_dir_contents = glob.glob("py-data/*.json")
     for _file in data_dir_contents:
         path_list = _file.split('/')
         filename = path_list[-1]
@@ -153,6 +148,8 @@ if args.end:
 
 # -r --reset
 if args.reset:
+    verbose('Setting "running" state to false.')
+    verbose('Setting "stop" state to False')
     reset(state_loc)
 
 # -a --archive

@@ -18,7 +18,7 @@ parser_start_group.add_argument('-e', '--end', help="end monitoring cpu temperat
 parser_start_group.add_argument('-r', '--reset', help="reset state file; WARNING can destroy currently running \
                                                         process if used while the program is running - use ONLY \
                                                         to fix when errors have occurred.", action="store_true")
-parser_start_group.add_argument('-a', '--archive', help="archive data from py-data/ to the directory specified\
+parser_start_group.add_argument('-a', '--archive', help="archive data from data/ to the directory specified\
                                                         in " + settings_loc, action="store_true")
 parser.add_argument('-f', '--frequency', type=int, help="set how frequently data should be collected in seconds\
                                                         in " + settings_loc)
@@ -64,10 +64,11 @@ def reset(state_loc):
         else:
             print('Not performing hard reset. Reset aborted.')
 
-def record_data(output_file_name, write_id, collection_freq, state_loc):
+def record_data(output_file_name, write_id, collection_freq, state_loc, core_count):
     print("Recording CPU Temps: ")
     verbose('collection-frequency: {}'.format(collection_freq))
     verbose('setting running state in ' + state_loc)
+    verbose('core count value: {}'.format(core_count))
     change_state(state_loc, 'running', True)
     while True:
         i = 1
@@ -76,11 +77,13 @@ def record_data(output_file_name, write_id, collection_freq, state_loc):
         timestamp = round(datetime.now().timestamp())
         sensors_list = sensors_raw.split('  +')
 
-        while i <= 4:
+        while i <= core_count:
             temps.append(sensors_list[i][:4])
             i += 1
 
-        new_entry = '   "{}" : {{ "timestamp" : {}, "cputemps" : [{}, {}, {}, {}] }},'.format(write_id, timestamp, temps[0], temps[1], temps[2], temps[3])
+        new_entry = '   "{}" : {{ "timestamp" : {}, "cputemps" : ['.format(write_id, timestamp)
+        new_entry += ', '.join(str(temp) for temp in temps)
+        new_entry += '] },'
         verbose(new_entry)
 
         store(new_entry, output_file_name, write_id)
@@ -97,24 +100,24 @@ def record_data(output_file_name, write_id, collection_freq, state_loc):
         time.sleep(collection_freq)
 
 def store(new_entry, output_file_name, write_id):
-    with open('py-data/' + output_file_name, "a+") as data_json:
+    with open('data/' + output_file_name, "a+") as data_json:
         if write_id == 0:
             data_json.write("{\n" + new_entry)
         else:
             data_json.write('\n' + new_entry)
 
 def fixup(output_file_name):
-    with open('py-data/' + output_file_name, "rb+") as data_json:
+    with open('data/' + output_file_name, "rb+") as data_json:
         verbose('Removing trailing comma')
         data_json.seek(-1, os.SEEK_END)
         data_json.truncate()
-    with open('py-data/' + output_file_name, "a+") as data_json:
+    with open('data/' + output_file_name, "a+") as data_json:
         verbose('Adding JSON closing curly bracket')
         data_json.write('\n}')
         
 def archive(archive_dir):
     os.makedirs(archive_dir, exist_ok=True)
-    data_dir_contents = glob.glob("py-data/*.json")
+    data_dir_contents = glob.glob("data/*.json")
     for _file in data_dir_contents:
         path_list = _file.split('/')
         filename = path_list[-1]
@@ -132,8 +135,9 @@ if (args.start and not check_state(state_loc, 'running')):
     verbose('starting data collection..')
     output_file_name = (str(datetime.now()).replace(':','-').replace('.', '-').replace(' ', '-') + '.json')
     collection_freq = check_state(settings_loc, 'collection-frequency')
+    core_count = int(os.popen("lscpu | grep 'Core(s) per socket:' | awk '{print $4}'").read())
     verbose("output file name: " + output_file_name)
-    record_data(output_file_name, write_id, collection_freq, state_loc)
+    record_data(output_file_name, write_id, collection_freq, state_loc, core_count)
 elif (args.start and check_state(state_loc, 'running')):
     print('aborting, already running.')
 
@@ -153,7 +157,7 @@ if args.reset:
     reset(state_loc)
 
 # -a --archive
-if args.archive:
+if args.archive and not check_state(state_loc, 'running'):
     archive_dir = check_state(settings_loc, 'archive-directory')
     verbose('Archiving data to {}.'.format(archive_dir))
     try:
@@ -162,6 +166,8 @@ if args.archive:
     except Exception as e:
         print("Oops - something went wrong while archiving:")
         print(str(e))
+elif args.archive:
+    print('Failed to archive due to program currently writing data.')
 
 # -f --frequency
 if args.frequency != None:

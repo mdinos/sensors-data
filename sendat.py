@@ -130,6 +130,14 @@ if args.version:
     versionNumber = open("version.txt", "r").read()
     print("sendat version: {}".format(versionNumber))
 
+    # -f --frequency
+if args.frequency != None:
+    verbose('Updating collection_frequency value in ' + settings_loc)
+    if args.frequency > 0:
+        change_state(settings_loc, 'collection-frequency', args.frequency)
+    else:
+        print("Value must be positive and non-zero; aborting.")
+
 # -s --start
 if (args.start and not check_state(state_loc, 'running')):
     verbose('starting data collection..')
@@ -156,6 +164,11 @@ if args.reset:
     verbose('Setting "stop" state to False')
     reset(state_loc)
 
+# -A --archive-dir
+if args.archive_dir != None:
+    verbose('Updating archive directory location in ' + settings_loc)
+    change_state(settings_loc, 'archive-directory', args.archive_dir)
+
 # -a --archive
 if args.archive and not check_state(state_loc, 'running'):
     archive_dir = check_state(settings_loc, 'archive-directory')
@@ -168,19 +181,6 @@ if args.archive and not check_state(state_loc, 'running'):
         print(str(e))
 elif args.archive:
     print('Failed to archive due to program currently writing data.')
-
-# -f --frequency
-if args.frequency != None:
-    verbose('Updating collection_frequency value in ' + settings_loc)
-    if args.frequency > 0:
-        change_state(settings_loc, 'collection-frequency', args.frequency)
-    else:
-        print("Value must be positive and non-zero; aborting.")
-
-# -A --archive-dir
-if args.archive_dir != None:
-    verbose('Updating archive directory location in ' + settings_loc)
-    change_state(settings_loc, 'archive-directory', args.archive_dir)
 
 # -S --settings
 if args.settings:

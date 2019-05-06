@@ -26,3 +26,4 @@ awk
 lscpu
 RECOMENDED: pyenv
 ```
+## Issues \nDoesn't work when called from the wrong directory - make relative paths safe by settings a /home/marcus/git/me/sensors-data

@@ -7,6 +7,8 @@ Records cpu temperatures to JSON in the /data folder.
 Generic usage:
 `python sendat.py [OPTIONS]`
 
+`python sendat.py --help`
+
 Start:
 `python sendat.py -s`
 

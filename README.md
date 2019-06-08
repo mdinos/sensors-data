@@ -15,7 +15,7 @@ Stop (in a different terminal):
 
 ## Compatability
 
-This has been tested on Linux Mint 19.
+This has been tested on Linux Mint 19 - does not work on Mac OS.
 
 Requires these:
 
@@ -26,4 +26,5 @@ awk
 lscpu
 RECOMENDED: pyenv
 ```
-## Issues \nDoesn't work when called from the wrong directory - make relative paths safe by settings a /home/marcus/git/me/sensors-data
+## Issues 
+Doesn't work when called from the wrong directory - make relative paths safe

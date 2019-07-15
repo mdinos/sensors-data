@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import argparse, json, os, time, glob
 from datetime import datetime
 
@@ -81,9 +82,7 @@ def record_data(output_file_name, write_id, collection_freq, state_loc, core_cou
             temps.append(sensors_list[i][:4])
             i += 1
 
-        new_entry = '   "{}" : {{ "timestamp" : {}, "cputemps" : ['.format(write_id, timestamp)
-        new_entry += ', '.join(str(temp) for temp in temps)
-        new_entry += '] },'
+        new_entry = dict(write_id=write_id, timestamp=timestamp, cpu_temps=[str(temp) for temp in temps])
         verbose(new_entry)
 
         store(new_entry, output_file_name, write_id)
@@ -102,9 +101,9 @@ def record_data(output_file_name, write_id, collection_freq, state_loc, core_cou
 def store(new_entry, output_file_name, write_id):
     with open('data/' + output_file_name, "a+") as data_json:
         if write_id == 0:
-            data_json.write("{\n" + new_entry)
+            data_json.write("{\n" + str(new_entry))
         else:
-            data_json.write('\n' + new_entry)
+            data_json.write('\n' + new_entry + ',')
 
 def fixup(output_file_name):
     with open('data/' + output_file_name, "rb+") as data_json:

@@ -103,7 +103,7 @@ def store(new_entry, output_file_name, write_id):
         if write_id == 0:
             data_json.write("{\n" + str(new_entry))
         else:
-            data_json.write('\n' + new_entry + ',')
+            data_json.write('\n' + str(new_entry) + ',')
 
 def fixup(output_file_name):
     with open('data/' + output_file_name, "rb+") as data_json:

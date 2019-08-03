@@ -121,9 +121,9 @@ def archive(archive_dir):
     full_archive_dir = '{}/{}'.format(sendat_home, archive_dir)
     os.makedirs(full_archive_dir, exist_ok=True)
     data_dir_contents = glob.glob(data_loc + "*.json")
-    print(data_dir_contents)
     for f in data_dir_contents:
         filename = f.split('/')[-1]
+        verbose('Archiving file: {}'.format(filename))
         os.rename(f, full_archive_dir + '/' + filename)
 
 # CLI Logic

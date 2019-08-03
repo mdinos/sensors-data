@@ -15,9 +15,19 @@ Start:
 Stop (in a different terminal):
 `python sendat.py -e`
 
+## Installation
+
+If for some unknown reason, you want to install this..
+
+Append this to your bash profile or whatever yours is called:
+```shell
+export SENDAT_HOME=<the directory in which sendat.py sits>
+alias sendat='${SENDAT_HOME}/sendat.py'
+```
+
 ## Compatability
 
-This has been tested on Linux Mint 19 - does not work on Mac OS.
+This has been tested on Linux Mint 19, and Ubuntu 19.04 - does not work on Mac OS.
 
 Requires these:
 
@@ -28,5 +38,3 @@ awk
 lscpu
 RECOMENDED: pyenv
 ```
-## Issues 
-Doesn't work when called from the wrong directory - make relative paths safe

@@ -3,8 +3,10 @@ import argparse, json, os, time, glob
 from datetime import datetime
 
 # define global vars
-settings_loc = 'config/settings.json'
-state_loc = 'config/statefile.json'
+sendat_home = os.getenv('SENDAT_HOME')
+settings_loc = '{}/config/settings.json'.format(sendat_home)
+state_loc = '{}/config/statefile.json'.format(sendat_home)
+data_loc = '{}/data/'.format(sendat_home)
 write_id = 0
 
 # Create argparse instance
@@ -20,11 +22,12 @@ parser_start_group.add_argument('-r', '--reset', help="reset state file; WARNING
                                                         process if used while the program is running - use ONLY \
                                                         to fix when errors have occurred.", action="store_true")
 parser_start_group.add_argument('-a', '--archive', help="archive data from data/ to the directory specified\
-                                                        in " + settings_loc, action="store_true")
+                                                        in " + settings_loc + ', relative to the installation\
+                                                        folder', action="store_true")
 parser.add_argument('-f', '--frequency', type=int, help="set how frequently data should be collected in seconds\
                                                         in " + settings_loc)
 parser.add_argument('-A', '--archive-dir', type=str, help="set path to directory in which to archive data in \
-                                                        in " + settings_loc + " \
+                                                        in " + settings_loc + " relative to the installation folder\
                                                         example: [ -a path/to/dir/ ]")
 parser.add_argument('-S', '--settings', help="list settings defined in " + settings_loc, action="store_true")
 parser.add_argument('-V', '--version', help="print the version of sendat", action="store_true")
@@ -99,34 +102,35 @@ def record_data(output_file_name, write_id, collection_freq, state_loc, core_cou
         time.sleep(collection_freq)
 
 def store(new_entry, output_file_name, write_id):
-    with open('data/' + output_file_name, "a+") as data_json:
+    with open(data_loc + output_file_name, "a+") as data_json:
         if write_id == 0:
             data_json.write("{\n" + str(new_entry))
         else:
             data_json.write('\n' + str(new_entry) + ',')
 
 def fixup(output_file_name):
-    with open('data/' + output_file_name, "rb+") as data_json:
+    with open(data_loc + output_file_name, "rb+") as data_json:
         verbose('Removing trailing comma')
         data_json.seek(-1, os.SEEK_END)
         data_json.truncate()
-    with open('data/' + output_file_name, "a+") as data_json:
+    with open(data_loc + output_file_name, "a+") as data_json:
         verbose('Adding JSON closing curly bracket')
         data_json.write('\n}')
         
 def archive(archive_dir):
-    os.makedirs(archive_dir, exist_ok=True)
-    data_dir_contents = glob.glob("data/*.json")
-    for _file in data_dir_contents:
-        path_list = _file.split('/')
-        filename = path_list[-1]
-        os.rename(_file, archive_dir + '/' + filename)
+    full_archive_dir = '{}/{}'.format(sendat_home, archive_dir)
+    os.makedirs(full_archive_dir, exist_ok=True)
+    data_dir_contents = glob.glob(data_loc + "*.json")
+    print(data_dir_contents)
+    for f in data_dir_contents:
+        filename = f.split('/')[-1]
+        os.rename(f, full_archive_dir + '/' + filename)
 
 # CLI Logic
 
 # -V --version
 if args.version:
-    versionNumber = open("version.txt", "r").read()
+    versionNumber = open(sendat_home + '/version.txt', "r").read()
     print("sendat version: {}".format(versionNumber))
 
     # -f --frequency
